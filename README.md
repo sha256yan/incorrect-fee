@@ -65,7 +65,7 @@ I have identified 3 main root causes which I will present with accompanying evid
 
 
 Will now use example numbers:
-- Let amountIn = 1e10
+- Let amountIn = 1e10 (meaning the user has transferred/minted 1e10 tokens to the LBPair)
 - Let PRECISION = 1e18
 - Let totalFee =  0.00125 x precision
 - Let price = 1 (parity)
@@ -82,7 +82,30 @@ Will now use example numbers:
 
 ### Evidence
 
+```
+        fees = fp.getFeeAmountDistribution(fp.getFeeAmount(_maxAmountInToBin));
 
+        if (_maxAmountInToBin + fees.total <= amountIn) {
+            amountInToBin = _maxAmountInToBin;
+            amountOutOfBin = _reserve;
+        }
+```
+- Here, we are saying if _maxAmountInToBin + ( the fee you would pay if your amountIn was _maxAmountInToBin ) is <= amountIn, then the amountInToBin is be the max amount.
+- Again, the fee must be calculated on the amountIn. 
+
+Consider: 
+```
+        fees = fp.getFeeAmountDistribution(fp.getFeeAmount(amountIn));
+
+        if (_maxAmountInToBin <  amountIn - fees.total) {
+            (, uint256 _fee) = fp.getAmountInWithFees(_maxAmountInToBin);
+            fees = fp.getFeeAmountDistribution(_fee);
+            amountInToBin = _maxAmountInToBin;
+            amountOutOfBin = _reserve;
+        }
+```
+- Now, the fees are collected on amountIn.
+- Since fees are now (correctly) larger, 
 ---
 
 
