@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "./TestHelper.sol";
+import "test/TestHelper.sol";
 
 import "test/mocks/LBPairCorrectFee/LBPair.sol";
 
-contract SwapFee is TestHelper {
+contract SwapFeeTestHelper is TestHelper {
 
     LBPair internal correctFeePair;
     LBFactory internal correctFeeFactory;
@@ -17,7 +17,7 @@ contract SwapFee is TestHelper {
 
         factory = new LBFactory(DEV, 8e14);
 
-        //note this is the same factory implementation. Could not store 2 pairs with same tokens and binStep in one factory; that's the only reason it exists.
+        //Same factory implementation. Could not store 2 pairs with same tokens and binStep in one factory; that's the only reason it exists.
         correctFeeFactory = new LBFactory(DEV, 8e14);
 
         //factory
@@ -28,7 +28,7 @@ contract SwapFee is TestHelper {
 
 
         //correctFeeFactory
-        //note a reminder: the only thing different about this pair implementation is that is uses SwapHelperV2 which has a modified getAmountsOut function.
+        //a reminder: the only thing different about this pair implementation is that is uses SwapHelperV2 which has a modified getAmountsOut function.
         _LBPairImplementation = new CorrectFeeLBPair(correctFeeFactory);
         correctFeeFactory.setLBPairImplementation(address(_LBPairImplementation));
         _setFactoryPreset(correctFeeFactory, DEFAULT_BIN_STEP);
@@ -40,73 +40,6 @@ contract SwapFee is TestHelper {
         pair = createLBPairDefaultFees(token6D, token18D);
 
         correctFeePair = LBPair(address(correctFeeFactory.createLBPair(token6D, token18D, ID_ONE, DEFAULT_BIN_STEP)));
-    }
-
-
-    function testSingleBinSwapFeeDifference() public {
-        uint112 _token18DAmount = 1e12;
-
-        _createLiquidity(pair, _token18DAmount);
-        _createLiquidity(correctFeePair, _token18DAmount);
-
-
-        uint112 _token6DAmountIn = _token18DAmount;
-        uint256 pairFees = _getFeesFromSwap(pair, _token6DAmountIn);
-        uint256 correctPairFees = _getFeesFromSwap(correctFeePair, _token6DAmountIn);
-
-        emit log_named_uint("difference: ", correctPairFees - pairFees);
-    }
-
-
-    function testMultiBinSwapFeeDifference() public {
-
-        uint112 _token18DAmount = 1e12;
-        uint16 _numberOfBins = 100;
-
-        _createSpreadLiquidity(pair, _token18DAmount, _numberOfBins);
-        _createSpreadLiquidity(correctFeePair, _token18DAmount, _numberOfBins);
-
-
-        uint112 _token6DAmountIn = _token18DAmount;
-        uint256 pairFees = _getFeesFromSwap(pair, _token6DAmountIn);
-        uint256 correctPairFees = _getFeesFromSwap(correctFeePair, _token6DAmountIn);
-
-        emit log_named_uint("difference: ", correctPairFees - pairFees);
-
-    }
-
-    //@note fuzzing to see whether correctPairFees - pairFees holds.
-    function testSingleBinSwapFeeDifferenceFuzz(uint112 _token18DAmount) public {
-
-        vm.assume(_token18DAmount > 0);
-
-        _createLiquidity(pair, _token18DAmount);
-        _createLiquidity(correctFeePair, _token18DAmount);
-
-
-        uint112 _token6DAmountIn = _token18DAmount;
-        uint256 pairFees = _getFeesFromSwap(pair, _token6DAmountIn);
-        uint256 correctPairFees = _getFeesFromSwap(correctFeePair, _token6DAmountIn);
-
-        emit log_named_uint("difference: ", correctPairFees - pairFees);
-    }
-
-
-    //@note fuzzing to see whether correctPairFees - pairFees holds.
-    function testMultiBinSwapFeeDifferenceFuzz(uint112 _token18DAmount) public {
-        uint16 _numberOfBins = 100;
-        vm.assume(_token18DAmount > 1e10);
-
-        _createSpreadLiquidity(pair, _token18DAmount, _numberOfBins);
-        _createSpreadLiquidity(correctFeePair, _token18DAmount, _numberOfBins);
-
-
-        uint112 _token6DAmountIn = _token18DAmount;
-        uint256 pairFees = _getFeesFromSwap(pair, _token6DAmountIn);
-        uint256 correctPairFees = _getFeesFromSwap(correctFeePair, _token6DAmountIn);
-
-        emit log_named_uint("difference: ", correctPairFees - pairFees);
-
     }
 
 
@@ -142,7 +75,7 @@ contract SwapFee is TestHelper {
     }
 
 
-    //@note mints liquidity accross multiple bins.
+    // @note mints liquidity accross multiple bins.
     function _createSpreadLiquidity(LBPair _pair, uint112 _tokenAmount, uint16 _numberOfBins) internal {
 
         uint256[] memory _ids = new uint256[](_numberOfBins);
