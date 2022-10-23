@@ -3,8 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "test/TestHelper.sol";
-
-import "test/mocks/LBPairCorrectFee/LBPair.sol";
+import "test/mocks/correctFee/LBPair.sol";
 
 contract SwapFeeTestHelper is TestHelper {
 

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-//@NOTE only thing different about this LBPair implementation is the SwapHelper.sol and FeeHelper.sol library implementation.
+// @NOTE only thing different about this LBPair implementation is that it uses SwapHelperV2.sol.
 
 /** Imports **/
 
