@@ -30,7 +30,7 @@ The total Fee Deficit from a period similar to May 7th 2022 - May 14th 2022, wit
 
 3 main causes have been identified and will be discussed in this report.
 - [Incorrect use of getFeeAmountFrom](#incorrect-use-of-getfeeamountfrom)
-- [Incorrect conditional for amountIn overflow](#incorrect-conditional-for-amountin-overflow)
+- [Incorrect condition for amountIn overflow](#incorrect-condition-for-amountin-overflow)
 - [Need for an additional FeeHelper function](#need-for-an-additional-feehelper-function)
 
 
