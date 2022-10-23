@@ -78,7 +78,6 @@ The total Fee Deficit from a period similar to May 7th 2022 - May 14th 2022, wit
 
 - LBRouter.getSwapOut relies on SwapHelper.getAmounts to simulate swaps. Its simulations adjust to the correct fee upon using SwapHelper.getAmountsV2 ([LBRouter.getSwapOut](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L124-L125), [SwapHelper.getAmounts](), [SwapHelper.getAmountsV2]())
 - LBRouter.getSwapIn has a fee calculation error which is independent of SwapHelper.getAmounts. [See here](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L168-L169)
-- 
 
 
 ---
@@ -98,14 +97,15 @@ Will now use example numbers:
 - Let price = 1 (parity)
 - If the current bin has enough liqudity, feeAmount must be: (amountIn * totalFee ) / (PRECISION) = 12500000 
 - [FeeHelper.getFeeAmountFrom(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L124-L126) uses the formula: feeAmount = (amountIn * totalFee) / (PRECISION + totalFee) = 12484394
-- [FeeHelper.getFeeAmount(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L116-L118) uses exactly the formula ourlined in the correct feeAmount calculation.
+- [FeeHelper.getFeeAmount(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L116-L118) uses exactly the formula ourlined in the correct feeAmount calculation and is the correct method in this case.
 
 
 ---
 
 
-# Incorrect conditional for amountIn overflow
-- The current conditional in SwapHelper.getAmounts tasked with determining when 
+# Incorrect condition for amountIn overflow
+- The [condition](https://github.com/sha256yan/incorrect-fee/blob/348b00988d377d96c9ad64917413524815739884/src/libraries/SwapHelper.sol#L61) for when an amountIn overflows the maximum amount available in a bin is flawed.
+- The Fee Deficit here could potentially trigger an unnecessary bin de-activation.
 
 ### Evidence
 #### Snippet 1
@@ -114,26 +114,22 @@ Will now use example numbers:
         fees = fp.getFeeAmountDistribution(fp.getFeeAmount(_maxAmountInToBin));
 
         if (_maxAmountInToBin + fees.total <= amountIn) {
-            amountInToBin = _maxAmountInToBin;
-            amountOutOfBin = _reserve;
+            //do things
         }
 ```
-- Here, we are saying if ```_maxAmountInToBin+ ( the fee you would pay if your amountIn was _maxAmountInToBin ) <= amountIn```, then the ```amountInToBin``` must be ```_maxAmountInToBin```.
-- The fee being 
+- Collecting the fees on ```_maxAmountInToBin``` before doing so on ```amountIn``` means we are not checking  to see whether ```amountIn``` after 
 
-Consider
+Consider the following:
 #### Snippet 2
 ```
         fees = fp.getFeeAmountDistribution(fp.getFeeAmount(amountIn));
 
         if (_maxAmountInToBin <  amountIn - fees.total) {
-            (, uint256 _fee) = fp.getAmountInWithFees(_maxAmountInToBin);
-            fees = fp.getFeeAmountDistribution(_fee);
-            amountInToBin = _maxAmountInToBin;
-            amountOutOfBin = _reserve;
+            //do things
         }
 ```
 - Now, the fees are collected on ```amountIn```.
+- Assuming both conditions are true, the fees from Snippet2 will be necessarily larger than those in Snippet1 since in both cases ``` _maxAmountInToBin <  amountIn ```.
 
 
 
@@ -143,16 +139,16 @@ Consider
 
 
 # Need for an additional FeeHelper function
-- There are currently functions to answer the following question: How much tokens must a user send, to end up with a given amountInToBin after fees, before the swap itself takes place?
+- There are currently functions to answer the following question: How many tokens must a user send, to end up with a given amountInToBin after fees, before the swap itself takes place?
 
 ### Evidence
-- LBRouter.getSwapIn(, amountOut, ) needs this question answered. At a given price, how many tokens must a user send, to receive amountOut?
-  - We use the amountOut and price to work backwards to the amountInToBin.
-  - Current approach calculates fees on amountInToBin. ([See here](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L124-L125))
-  - This is incorrect as fees should be calculated on amountIn. (As we discussed in [Incorrect use of getFeeAmountFrom](#incorrect-use-of-getfeeamountfrom))
+- ```LBRouter.getSwapIn(, amountOut, )``` needs this question answered. At a given price, how many tokens must a user send, to receive ```amountOut```?
+  - We use the ```amountOut``` and price to work backwards to the ```amountInToBin```.
+  - Current approach calculates fees on ```amountInToBin```. ([See here](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L124-L125))
+  - This is incorrect as fees should be calculated on ```amountIn```. (As we discussed in [Incorrect use of getFeeAmountFrom](#incorrect-use-of-getfeeamountfrom))
 
 
-- SwapHelper.getAmounts needs to be 
+- SwapHelper.getAmounts needs to know what hypothetical ```amountIn``` would end up as ```maxAmountInToBin``` after fees. This is needed to be able to avoid [Incorrect amountIn overflow](#incorrect-conditional-for-amountin-overflow)
 
 
 ---
