@@ -38,6 +38,7 @@ The total Fee Deficit from a period similar to May 7th 2022 - May 14th 2022, wit
 
 
 
+
 ### Affected contracts and libraries
 
 - LBPair.sol
@@ -72,12 +73,15 @@ The total Fee Deficit from a period similar to May 7th 2022 - May 14th 2022, wit
 ---
 
 ### Details
-- As mentioned earlier, most issues arise from SwapHelper.getAmounts . The SwapHelper library is often used for the Bin type. ([Example in LBPair](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L36))
+- As mentioned earlier, most issues arise from SwapHelper.getAmounts . The SwapHelper library is often used for the Bin type. ([Example in LBPair](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L36)). The proposed solution includes the new functions [SwapHelper.getAmountsV2](https://github.com/sha256yan/incorrect-fee/blob/48b5caee818c1befb5733c3f96e415ca14a67bf2/src/libraries/SwapHelper.sol#L76-L133) and [FeeHelper.getAmountInWithFees](https://github.com/sha256yan/incorrect-fee/blob/48b5caee818c1befb5733c3f96e415ca14a67bf2/src/libraries/FeeHelper.sol#L164-L173).
 - LBPair.swap uses _bin.getAmounts(...) on the active bin to calculate fees. ([See here](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L329-L330))
 - Inside of SwapHelper.getAmounts, for a given swap, if a bin has enough liqudity, the fee is calculated using ([FeeHelper.getFeeAmountFrom](https://github.com/code-423n4/2022-10-traderjoe/blob/79f25d48b907f9d0379dd803fc2abc9c5f57db93/src/libraries/SwapHelper.sol#L65)). This results in smaller than expected fees.
 
 - LBRouter.getSwapOut relies on SwapHelper.getAmounts to simulate swaps. Its simulations adjust to the correct fee upon using SwapHelper.getAmountsV2 ([LBRouter.getSwapOut](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L124-L125), [SwapHelper.getAmounts](), [SwapHelper.getAmountsV2]())
-- LBRouter.getSwapIn has a fee calculation error which is independent of SwapHelper.getAmounts. [See here](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L168-L169)
+- LBRouter.getSwapIn has a fee calculation error which is independent of SwapHelper.getAmounts. ([See here](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L168-L169))
+- As of right now the LBPair.swap using getAmountsV2 uses 3.8% ***more*** gas.
+
+![LBPair comparison](https://user-images.githubusercontent.com/91401566/197410772-e3f1cb99-7181-48f7-a56a-2430176a92ff.png)
 
 
 ---
@@ -98,6 +102,7 @@ Will now use example numbers:
 - If the current bin has enough liqudity, feeAmount must be: (amountIn * totalFee ) / (PRECISION) = 12500000 
 - [FeeHelper.getFeeAmountFrom(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L124-L126) uses the formula: feeAmount = (amountIn * totalFee) / (PRECISION + totalFee) = 12484394
 - [FeeHelper.getFeeAmount(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L116-L118) uses exactly the formula ourlined in the correct feeAmount calculation and is the correct method in this case.
+- Visit the tests section to run a test. 
 
 
 ---
@@ -108,7 +113,7 @@ Will now use example numbers:
 - The Fee Deficit here could potentially trigger an unnecessary bin de-activation.
 
 ### Evidence
-#### Snippet 1
+#### Snippet 1 (SwapHelper.getAmounts)
 
 ```
         fees = fp.getFeeAmountDistribution(fp.getFeeAmount(_maxAmountInToBin));
@@ -120,7 +125,7 @@ Will now use example numbers:
 - Collecting the fees on ```_maxAmountInToBin``` before doing so on ```amountIn``` means we are not checking  to see whether ```amountIn``` after 
 
 Consider the following:
-#### Snippet 2
+#### Snippet 2 (SwapHelper.getAmountsV2)
 ```
         fees = fp.getFeeAmountDistribution(fp.getFeeAmount(amountIn));
 
@@ -130,6 +135,7 @@ Consider the following:
 ```
 - Now, the fees are collected on ```amountIn```.
 - Assuming both conditions are true, the fees from Snippet2 will be necessarily larger than those in Snippet1 since in both cases ``` _maxAmountInToBin <  amountIn ```.
+- Snippet 1 produces false positives. Meaning, SwapHelper.getAmounts changes its active bin id more than needed. (See Tests section at the bottom for the relevant test)
 
 
 
@@ -169,5 +175,21 @@ ___
 To run tests, run the following command:
 
 ```
-forge test
+forge test --match-contract Report -vv
 ```
+---
+## testSingleBinSwapFeeDifference:
+- Simple test to show the Fee Defecit in it's most basic form.
+---
+## testFalsePositiveBinDeactivation
+- Test that shows false positive resulting from the [Incorrect condition](#incorrect-conditional-for-amountin-overflow)
+---
+#### testCorrectFeeBinDeactivation
+- Test that shows with getAmountsV2 the false positive issue is resolved.
+---
+### testMultiBinGrowth
+- Generates datapoints used in opening graph. 
+
+
+
+
