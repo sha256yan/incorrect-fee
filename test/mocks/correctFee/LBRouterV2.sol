@@ -166,7 +166,7 @@ contract LBRouter is ILBRouter {
             }
             if (_bin.reserveX != 0 || _bin.reserveY != 0) {
                 (uint256 _amountInToBin, uint256 _amountOutOfBin, FeeHelper.FeesDistribution memory _fees) = _bin
-                    .getAmounts(_fp, _activeId, _swapForY, _amountIn);
+                    .getAmountsV2(_fp, _activeId, _swapForY, _amountIn);
 
                 if (_amountInToBin > type(uint112).max) revert LBRouter__BinReserveOverflows(_activeId);
 

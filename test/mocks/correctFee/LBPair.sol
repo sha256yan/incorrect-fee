@@ -6,10 +6,10 @@ pragma solidity ^0.8.0;
 
 /** Imports **/
 
-import "./SwapHelperV2.sol";
 
 import "src/LBErrors.sol";
 import "src/LBToken.sol";
+import "src/libraries/SwapHelper.sol";
 import "src/libraries/BinHelper.sol";
 import "src/libraries/Constants.sol";
 import "src/libraries/Decoder.sol";
@@ -36,7 +36,7 @@ contract CorrectFeeLBPair is LBToken, ReentrancyGuardUpgradeable, ILBPair {
     using SafeMath for uint256;
     using TokenHelper for IERC20;
     using FeeHelper for FeeHelper.FeeParameters;
-    using SwapHelperV2 for Bin;
+    using SwapHelper for Bin;
     using Decoder for bytes32;
     using FeeDistributionHelper for FeeHelper.FeesDistribution;
     using Oracle for bytes32[65_535];
@@ -330,7 +330,7 @@ contract CorrectFeeLBPair is LBToken, ReentrancyGuardUpgradeable, ILBPair {
             Bin memory _bin = _bins[_pair.activeId];
             if ((!_swapForY && _bin.reserveX != 0) || (_swapForY && _bin.reserveY != 0)) {
                 (uint256 _amountInToBin, uint256 _amountOutOfBin, FeeHelper.FeesDistribution memory _fees) = _bin
-                    .getAmounts(_fp, _pair.activeId, _swapForY, _amountIn);
+                    .getAmountsV2(_fp, _pair.activeId, _swapForY, _amountIn);
 
                 _bin.updateFees(_swapForY ? _pair.feesX : _pair.feesY, _fees, _swapForY, totalSupply(_pair.activeId));
 
