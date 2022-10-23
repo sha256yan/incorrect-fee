@@ -67,10 +67,10 @@ I have identified 3 main root causes which I will present with accompanying evid
 Will now use example numbers:
 - Let amountIn = 1e10 (meaning the user has transferred/minted 1e10 tokens to the LBPair)
 - Let PRECISION = 1e18
-- Let totalFee =  0.00125 x precision
+- Let totalFee =  0.00125 x precision (fee of 0.0125%)
 - Let price = 1 (parity)
 - If the current bin has enough liqudity, feeAmount must be: (amountIn * totalFee ) / (PRECISION) = 12500000 
-- [FeeHelper.getFeeAmountFrom(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L124-L126) users the formula: feeAmount = (amountIn * totalFee) / (PRECISION + totalFee) = 12484394
+- [FeeHelper.getFeeAmountFrom(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L124-L126) uses the formula: feeAmount = (amountIn * totalFee) / (PRECISION + totalFee) = 12484394
 - [FeeHelper.getFeeAmount(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L116-L118) uses exactly the formula ourlined in the correct feeAmount calculation.
 
 
@@ -81,6 +81,7 @@ Will now use example numbers:
 - The current conditional in SwapHelper.getAmounts tasked with determining when 
 
 ### Evidence
+#### Snippet 1
 
 ```
         fees = fp.getFeeAmountDistribution(fp.getFeeAmount(_maxAmountInToBin));
@@ -90,10 +91,11 @@ Will now use example numbers:
             amountOutOfBin = _reserve;
         }
 ```
-- Here, we are saying if _maxAmountInToBin + ( the fee you would pay if your amountIn was _maxAmountInToBin ) is <= amountIn, then the amountInToBin is be the max amount.
-- Again, the fee must be calculated on the amountIn. 
+- Here, we are saying if ```_maxAmountInToBin+ ( the fee you would pay if your amountIn was _maxAmountInToBin ) <= amountIn```, then the ```amountInToBin``` must be ```_maxAmountInToBin```.
+- The fee being 
 
-Consider: 
+Consider
+#### Snippet 2
 ```
         fees = fp.getFeeAmountDistribution(fp.getFeeAmount(amountIn));
 
@@ -104,8 +106,10 @@ Consider:
             amountOutOfBin = _reserve;
         }
 ```
-- Now, the fees are collected on amountIn.
-- Since fees are now (correctly) larger, 
+- Now, the fees are collected on ```amountIn```.
+
+
+
 ---
 
 
