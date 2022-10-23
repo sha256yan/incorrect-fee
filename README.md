@@ -49,8 +49,9 @@ I have identified 3 main root causes which I will present with accompanying evid
 - LBPair.swap uses _bin.getAmounts(...) on the active bin to calculate fees. ([See here](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L329-L330))
 - Inside of SwapHelper.getAmounts, for a given swap, if a bin has enough liqudity, the fee is calculated using ([FeeHelper.getFeeAmountFrom](https://github.com/code-423n4/2022-10-traderjoe/blob/79f25d48b907f9d0379dd803fc2abc9c5f57db93/src/libraries/SwapHelper.sol#L65)). This results in smaller than expected fees.
 
-- LBRouter.getSwapOut relies on SwapHelper.getAmounts to simulate swaps. It's simulations adjust to the correct fee upon using the modified verion of SwapHelperV2.getAmounts ([LBRouter.getSwapOut](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L124-L125), [SwapHelper.getAmounts](), [SwapHelper.getAmountsV2]())
+- LBRouter.getSwapOut relies on SwapHelper.getAmounts to simulate swaps. Its simulations adjust to the correct fee upon using SwapHelper.getAmountsV2 ([LBRouter.getSwapOut](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L124-L125), [SwapHelper.getAmounts](), [SwapHelper.getAmountsV2]())
 - LBRouter.getSwapIn has a fee calculation error which is independent of SwapHelper.getAmounts. [See here](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/LBRouter.sol#L168-L169)
+- 
 
 
 ---
