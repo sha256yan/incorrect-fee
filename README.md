@@ -56,15 +56,18 @@ The total Fee Deficit from a period similar to May 7th 2022 - May 14th 2022, wit
 ### Proposed changes
 
 - FeeHelper.sol
-  - [getAmountInWithFees](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/libraries/FeeHelper.sol#L164-L173) ( *** New *** )
+  - [getAmountInWithFees](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/libraries/FeeHelper.sol#L164-L173) ( ***New*** )
 
 
 - SwapHelper.sol
-  - [getAmountsV2](https://github.com/sha256yan/incorrect-fee/blob/716cddf2583da86674376cb5346bf46b701b242c/test/mocks/correctFee/SwapHelperV2.sol#L68-L76) ( *** New *** )
+  - [getAmountsV2](https://github.com/sha256yan/incorrect-fee/blob/348b00988d377d96c9ad64917413524815739884/src/libraries/SwapHelper.sol#L118-L126) ( ***New*** )
 
-- LBRouterV2.sol
-  - [getSwapIn](https://github.com/sha256yan/incorrect-fee/blob/716cddf2583da86674376cb5346bf46b701b242c/test/mocks/correctFee/LBRouterV2.sol#L124-L125) ( *** Modified *** )
-  - [getSwapOut](https://github.com/sha256yan/incorrect-fee/blob/c1719b8429c7d25e4e12fc4632842285a2eaaf8b/test/mocks/correctFee/LBRouterV2.sol#L168-L169) ( *** Modified *** )
+- LBRouter.sol
+  - [getSwapIn](https://github.com/sha256yan/incorrect-fee/blob/716cddf2583da86674376cb5346bf46b701b242c/test/mocks/correctFee/LBRouterV2.sol#L124-L125) ( ***Modified*** )
+  - [getSwapOut](https://github.com/sha256yan/incorrect-fee/blob/c1719b8429c7d25e4e12fc4632842285a2eaaf8b/test/mocks/correctFee/LBRouterV2.sol#L168-L169) ( ***Modified*** )
+
+- LBPair.sol
+  - [swap](https://github.com/sha256yan/incorrect-fee/blob/348b00988d377d96c9ad64917413524815739884/test/mocks/correctFee/LBPair.sol#L332-L333)  ( ***Modified*** )
 
 ---
 
