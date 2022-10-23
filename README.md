@@ -5,7 +5,7 @@
 - These issues arise from SwapHelper.getAmounts, and the contracts and libraries that rely on it
 
 
-I will make 3 claims related to the issues described above. Each claim will be followed by evidence as well as instructions on how to run an accompanying test script.
+I have identified 3 main root causes which I will present with accompanying evidence and solutions. 
 - [Incorrect use of getFeeAmountFrom](#incorrect-use-of-getfeeamountfrom)
 - [Incorrect conditional for amountIn overflow](#incorrect-conditional-for-amountin-overflow)
 - [Need for an additional FeeHelper function](#need-for-an-additional-feehelper-function)
@@ -88,7 +88,7 @@ Will now use example numbers:
 
 
 # Need for an additional FeeHelper function
-- There are currently functions to answer the following question: How much tokens must a user send, to end up with a given amount after fees?
+- There are currently functions to answer the following question: How much tokens must a user send, to end up with a given amountInToBin after fees, before the swap itself takes place?
 
 ### Evidence
 - LBRouter.getSwapIn(, amountOut, ) needs this question answered. At a given price, how many tokens must a user send, to receive amountOut?
