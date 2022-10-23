@@ -9,7 +9,7 @@ I will make 3 claims related to the issues described above. Each claim will be f
 - [Need for an additional FeeHelper function](#need-for-an-additional-feehelper-function)
 
 
-
+--- 
 
 
 
@@ -26,6 +26,8 @@ I will make 3 claims related to the issues described above. Each claim will be f
   - [getAmounts](https://github.com/code-423n4/2022-10-traderjoe/blob/79f25d48b907f9d0379dd803fc2abc9c5f57db93/src/libraries/SwapHelper.sol#L59-L65)
 
 
+---
+
 ### New or modifed contracts and libraries
 
 - FeeHelper.sol
@@ -38,7 +40,7 @@ I will make 3 claims related to the issues described above. Each claim will be f
 - LBRouterV2.sol
   - [getSwapIn](https://github.com/sha256yan/incorrect-fee/blob/716cddf2583da86674376cb5346bf46b701b242c/test/mocks/correctFee/LBRouterV2.sol#L124-L125) ( *** Modified *** )
 
-
+---
 
 ### Details
 - LBPair.swap uses _bin.getAmounts(...) on the active bin to calculate fees. [See here](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L329-L330)
@@ -46,11 +48,7 @@ I will make 3 claims related to the issues described above. Each claim will be f
 - For a given swap, if a bin has enough liqudity, the fee is calculated using [FeeHelper.getFeeAmountFrom(amountIn)](https://github.com/code-423n4/2022-10-traderjoe/blob/79f25d48b907f9d0379dd803fc2abc9c5f57db93/src/libraries/SwapHelper.sol#L65)
 
 
-
-
-
-
-
+---
 
 
 # Incorrect use of getFeeAmountFrom(amountIn)
@@ -70,7 +68,7 @@ Will now use example numbers:
 - [FeeHelper.getFeeAmount(amountIn)](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/FeeHelper.sol#L116-L118) uses exactly the formula ourlined in the correct feeAmount calculation.
 
 
-
+---
 
 
 # Incorrect conditional for amountIn overflow
@@ -78,7 +76,7 @@ Will now use example numbers:
 ### Proof
 
 
-
+---
 
 
 
@@ -87,7 +85,7 @@ Will now use example numbers:
 
 ### Proof
 
-
+---
 
 
 ## Install dependencies
