@@ -9,7 +9,11 @@ I will make 3 claims related to the issues described above. Each claim will be f
 - [Need for an additional FeeHelper function](#need-for-an-additional-feehelper-function)
 
 
-## Affected existing contracts and libraries
+
+
+
+
+### Affected existing contracts and libraries
 
 - LBPair.sol
   - [swap](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L304-L330)
@@ -22,26 +26,28 @@ I will make 3 claims related to the issues described above. Each claim will be f
   - [getAmounts](https://github.com/code-423n4/2022-10-traderjoe/blob/79f25d48b907f9d0379dd803fc2abc9c5f57db93/src/libraries/SwapHelper.sol#L59-L65)
 
 
-## New or modifed contracts and libraries
+### New or modifed contracts and libraries
 
 - FeeHelper.sol
   - [getAmountInWithFees](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/libraries/FeeHelper.sol#L164-L173) ( *** New *** )
 
 
 - SwapHelperV2.sol
-  - [getAmounts](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/test/mocks/LBPairCorrectFee/SwapHelperV2.sol#L68-L76) ( *** Modified *** )
+  - [getAmounts](https://github.com/sha256yan/incorrect-fee/blob/716cddf2583da86674376cb5346bf46b701b242c/test/mocks/correctFee/SwapHelperV2.sol#L68-L76) ( *** Modified *** )
 
 - LBRouterV2.sol
-  - [getSwapIn]() ( *** Modified *** )
+  - [getSwapIn](https://github.com/sha256yan/incorrect-fee/blob/716cddf2583da86674376cb5346bf46b701b242c/test/mocks/correctFee/LBRouterV2.sol#L124-L125) ( *** Modified *** )
 
 
 
-
-
-## Detailed background
+### Details
 - LBPair.swap uses _bin.getAmounts(...) on the active bin to calculate fees. [See here](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L329-L330)
 - _bin is an instance of the custom type Bin, which uses the SwapHelper library. [See here](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L36)
 - For a given swap, if a bin has enough liqudity, the fee is calculated using [FeeHelper.getFeeAmountFrom(amountIn)](https://github.com/code-423n4/2022-10-traderjoe/blob/79f25d48b907f9d0379dd803fc2abc9c5f57db93/src/libraries/SwapHelper.sol#L65)
+
+
+
+
 
 
 
@@ -51,7 +57,7 @@ I will make 3 claims related to the issues described above. Each claim will be f
 - When there is enough liquidity in a bin for a swap, we should use FeeHelper.getFeeAmount(amountIn) instead of FeeHelper.getFeeAmountFrom(amountIn).
 
 ### Proof
-- amountIn, the parameter passed to calculate fees, is the amount of tokens in the LBPair contract in excess of the reserves and fees of the pair for that token. [Inside LBPair.sol](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/LBPair.sol#L312-L314)          [Inside TokenHelper](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/TokenHelper.sol#L59-L69)
+- amountIn, the parameter passed to calculate fees, is the amount of tokens in the LBPair contract in excess of the reserves and fees of the pair for that token. [Inside LBPair.sol](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/LBPair.sol#L312-L314) --- [Inside TokenHelper](https://github.com/sha256yan/incorrect-fee/blob/1396f6c07ae91bfe5833fd629357983432a97f8b/src/libraries/TokenHelper.sol#L59-L69)
 
 
 Will now use example numbers:
