@@ -4,6 +4,7 @@ out = 'out'
 libs = ['lib']
 optimizer = true
 optimizer_runs = 800
+gas_reports = ["LBPair", "CorrectFeeLBPair"]
 
 [fuzz]
 runs = 1024

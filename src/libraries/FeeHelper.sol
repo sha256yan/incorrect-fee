@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-import "./Constants.sol";
-import "./SafeCast.sol";
-import "./SafeMath.sol";
+import "src/libraries/Constants.sol";
+import "src/libraries/SafeCast.sol";
+import "src/libraries/SafeMath.sol";
 
 /// @title Liquidity Book Fee Helper Library
 /// @author Trader Joe
@@ -158,5 +158,16 @@ library FeeHelper {
         unchecked {
             return getBaseFee(_fp) + getVariableFee(_fp);
         }
+    }
+
+
+    /// @notice Returns the amountIn needed to be left with a given amount which excludes fees (NEW FUNCTION)
+    /// @param _fp The current fee parameter
+    /// @param  _amountInToBin amountIn after fees have been deducted
+    /// @return amountIn needed to end up with amountInExlcudingFees, and fees
+    function getAmountInWithFees(FeeParameters memory _fp, uint _amountInToBin) internal pure returns (uint256 amountIn, uint256 feeAmount){
+        uint256 _fee = getTotalFee(_fp);
+        amountIn = (_amountInToBin * Constants.PRECISION) / (Constants.PRECISION - _fee);
+        feeAmount = amountIn - _amountInToBin;
     }
 }
