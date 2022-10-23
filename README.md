@@ -1,11 +1,34 @@
-# LBPair fee calculation error
-- LBPair contracts do not collect the correct number of fees on swaps.
-- Fees are usually short by about 0.1% for single bin swaps.
-- For multi-bin swaps, the lost fees compound and the difference grows larger with each bin that is crossed. (due to the variable fee increasing)
-- These issues arise from SwapHelper.getAmounts, and the contracts and libraries that rely on it
+# LBPair contracts consistently collect less fees than their FeeParameters
+
+---
+## Motivation and Severity 
+LBpair contracts' fees fall short by 0.1% on single bin with the deficit growing exponentially with multi-bin swaps.
 
 
-I have identified 3 main root causes which I will present with accompanying evidence and solutions. 
+This report will refer to this difference in fees, that is, the difference between the expected fees and the actual collected fees as the "Fee Deficit".
+
+
+![feeDeficitGrowth](https://user-images.githubusercontent.com/91401566/197405701-e6df80c4-dcdf-44f5-9fd2-74ef1c66b954.png)
+
+The exponential growth of the Fee Deficit percentage is concerning, considering that the vast majority of the fees collected
+by LPs and DEXs are during high volatility periods.
+Note that the peak Fee Deficit percentage of 1.6% means that 1.6% of expected fees would not be collected.
+
+
+
+
+https://user-images.githubusercontent.com/91401566/197406096-5771893b-82f6-43e8-aa42-ccda449e4936.mov
+
+With an assumed average total fee of 1% (higher than usual due to ```variableFee``` component) and average Fee Deficit percentage of 0.4%;
+The total Fee Deficit from a period similar to May 7th 2022 - May 14th 2022, with approximately $1.979B in trading volume, would be ***$79,160*** over one week.
+
+
+
+
+[SwapHelper.getAmounts](https://github.com/code-423n4/2022-10-traderjoe/blob/79f25d48b907f9d0379dd803fc2abc9c5f57db93/src/libraries/SwapHelper.sol#L59-L65) carries most of the blame for this error.
+
+
+3 main causes have been identified and will be discussed in this report.
 - [Incorrect use of getFeeAmountFrom](#incorrect-use-of-getfeeamountfrom)
 - [Incorrect conditional for amountIn overflow](#incorrect-conditional-for-amountin-overflow)
 - [Need for an additional FeeHelper function](#need-for-an-additional-feehelper-function)
@@ -15,7 +38,7 @@ I have identified 3 main root causes which I will present with accompanying evid
 
 
 
-### Affected existing contracts and libraries
+### Affected contracts and libraries
 
 - LBPair.sol
   - [swap](https://github.com/sha256yan/incorrect-fee/blob/dc355df9ee61a41185dedd7017063fc508584f24/src/LBPair.sol#L304-L330)
@@ -30,7 +53,7 @@ I have identified 3 main root causes which I will present with accompanying evid
 
 ---
 
-### New or modifed contracts and libraries
+### Proposed changes
 
 - FeeHelper.sol
   - [getAmountInWithFees](https://github.com/sha256yan/incorrect-fee/blob/899b2318b7d368dbb938a0f1b56748eb0ac3442a/src/libraries/FeeHelper.sol#L164-L173) ( *** New *** )
@@ -41,6 +64,7 @@ I have identified 3 main root causes which I will present with accompanying evid
 
 - LBRouterV2.sol
   - [getSwapIn](https://github.com/sha256yan/incorrect-fee/blob/716cddf2583da86674376cb5346bf46b701b242c/test/mocks/correctFee/LBRouterV2.sol#L124-L125) ( *** Modified *** )
+  - [getSwapOut](https://github.com/sha256yan/incorrect-fee/blob/c1719b8429c7d25e4e12fc4632842285a2eaaf8b/test/mocks/correctFee/LBRouterV2.sol#L168-L169) ( *** Modified *** )
 
 ---
 
