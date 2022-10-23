@@ -9,6 +9,7 @@ contract SwapFeeTestHelper is TestHelper {
 
     LBPair internal correctFeePair;
     LBFactory internal correctFeeFactory;
+    using FeeHelper for FeeHelper.FeeParameters;
 
     function setUp() public {
         token6D = new ERC20MockDecimals(6);
@@ -52,7 +53,6 @@ contract SwapFeeTestHelper is TestHelper {
 
         xFeesCollectedFromSwap = xFeesAfterSwap - xFeesBeforeSwap;
 
-        emit log_named_uint("collected: ", xFeesCollectedFromSwap);
 
         return xFeesCollectedFromSwap;
     }
@@ -135,6 +135,13 @@ contract SwapFeeTestHelper is TestHelper {
 
     function _getGlobalPairFees(LBPair _pair) internal view returns (uint256 xFees, uint256 yFees) {
         (xFees, yFees, , ) = _pair.getGlobalFees();
+    }
+
+
+    function _arrayLog(uint[] memory array) internal {
+        for(uint i = 0 ; i < array.length ; i++) {
+            emit log_uint(array[i]);
+        }
     }
 
 
